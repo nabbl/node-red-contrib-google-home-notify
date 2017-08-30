@@ -1,347 +1,86 @@
 <script type="text/javascript">
-  RED.nodes.registerType('enocean-config-node', {
+  RED.nodes.registerType('googlehome-config-node', {
     category: 'config',
     defaults: {
-      serialport: {
+      ipaddress: {
         value: "",
         required: true
+      },
+      language: {
+        value: ""
       }
     },
     label: function () {
-      return this.serialport;
+      return this.ipaddress;
+    },
+    oneditprepare: function () {
+      var node = this;
+      var options = $("#node-input-language");
+
+      $.getJSON('/languages', function (languages) {
+        $.each(languages, function (l, language) {
+          options.append($("<option />").val(language.key).text(language.value));
+          options.val(node.language);
+        });
+      });
+
+    },
+    oneditsave: function () {
+      var node = this;
+      node.language = $("#node-input-language").val();
+      
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="enocean-config-node">
+<script type="text/x-red" data-template-name="googlehome-config-node">
   <div class="form-row">
-    <label for="node-config-input-serialport"><i class="icon-bookmark"></i> Serialport</label>
-    <input type="text" id="node-config-input-serialport">
+    <label for="node-config-input-ipaddress"><i class="icon-bookmark"></i> IP Adress</label>
+    <input type="text" id="node-config-input-ipaddress">
   </div>
+  <div class="form-row">
+    <label for="node-input-language"><i class="fa fa-filter"></i>  Language</label>
+    <select id="node-input-language">
+          <option value=""> Default</option>
+      </select>
+  </div>
+  <!-- <div class="form-row">
+    <label for="node-config-input-language"><i class="icon-bookmark"></i> Language</label>
+    <input type="text" id="node-config-input-language">
+  </div> -->
 </script>
 
 
 <!-- ###############################################################################################################-->
 
-<script type="text/x-red" data-template-name="enocean-listener">
+<script type="text/x-red" data-template-name="googlehome-notify">
   <div class="form-row">
-    <label for="node-input-serialport"><i class="fa fa-globe"></i> Serialport</label>
-    <input type="text" id="node-input-serialport">
+    <label for="node-input-server"><i class="fa fa-globe"></i> IP Adress</label>
+    <input type="text" id="node-input-server">
   </div>
   <div class="form-row">
     <label for="node-input-name"><i class="icon-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="ListenerName" style="width: 70%;">
+    <input type="text" id="node-input-name" placeholder="Google Home Notifier" style="width: 70%;">
   </div>
-  <div class="form-row" id="node-knownsensor">
-    <label>&nbsp;</label>
-    <input type="checkbox" id="node-input-knownsensor" style="display: inline-block; width: auto; vertical-align: top;">
-    <label for="node-input-knownsensor" style="width: 70%;"> Only listen to Known Sensors?</label>
-  </div>
-  <div class="form-row" id="node-input-devicefilter-row">
-    <label for="node-input-devicefilter"><i class="fa fa-filter"></i>  Device filter</label>
-    <select id="node-input-devicefilter">
-          <option value="none"> None</option>
-          <option value="target"> Selected</options>
-      </select>
-  </div>
-  <div class="form-row node-input-target-row" style="display: none;">
-    <div id="node-input-status-target-container-div" style="position: relative;   box-sizing: border-box; border-radius: 2px; height: 180px;  border: 1px solid #ccc;overflow:hidden; ">
-      <div style="box-sizing: border-box; line-height: 20px; font-size: 0.8em; border-bottom: 1px solid #ddd; height: 20px;">
-        <div style="display: inline-block;"><a id="node-input-target-sort-label" href="#" data-i18n="[title]status.label.sortByLabel"><span data-i18n="status.label.node">FriendlyId</span> <i class="node-input-status-sort-label-a fa fa-caret-down"></i><i class="node-input-status-sort-label-d fa fa-caret-up"></i></a></div>
-        <div style="position: absolute; right: 10px; width: 50px; display: inline-block; text-align: right;"><a id="node-input-target-sort-type" href="#" data-i18n="[title]status.label.sortByType"><i class="node-input-status-sort-sublabel-a fa fa-caret-down"></i><i class="node-input-status-sort-sublabel-d fa fa-caret-up"></i> <span data-i18n="status.label.type">DeviceId</span></a></div>
-      </div>
-      <div style="background: #fbfbfb; box-sizing: border-box; position:absolute; top:20px;bottom:0;left:0px;right:0px; overflow-y: scroll; overflow-x: hidden;">
-        <ul id="node-input-status-target-container" style=" list-style-type:none; margin: 0;"></ul>
-      </div>
-    </div>
-    </<div>
 </script>
-
-<script type="text/x-red" data-help-name="enocean-listener">
-  <h1>Enocean-Listener-Node</h1>
-  <p>This node has basically three built in functionalities:</p>
-  <ul>
-    <li>Listen to incoming Enocean telegrams and send their data in a msg.payload object</li>
-    <li>Teach-In sensors by triggering a teach-in function via the input port</li>
-    <li>Filter incoming telegrams for only the sensors you want to get the data from</li>
-  </ul>
-  <h2>Listen to incoming telegrams</h2>
-  <p>Specify Serialport. Can be Enocean HAT (/dev/ttyAMA0), Enocean USB Stick (dev/ttyUSBx) or COMx for Windows</p>
-  <p>Add a Debug Node to the output channel of the Enocean-Listener. You should now see incoming telegrams.
-    Check Node-red Logs if you don't receive anything.
-  </p>
-  <h2>Teach in new sensors</h2>
-  <p>Use the input-channel of the Enocean-Listener by linking an inject-node to it. <br />
-    Define the msg.payload as a string with a name you want to give the sensor</p>
-  <p>Once you click the inject-node-button you have 30 seconds to activate the sensor you want to teach in.<br />
-    The node should show the status: "Sensor teached in"
-    The new sensor should be visible in the Enocean-Listener device-list (see below in this description for how to see this list).
-  </p>
-  <h2>Set up listener node to only react to known sensors</h2>
-  <p>In the configuration of the node: Click the checkbox to only listen to knownsensors. You can now select if you want to target specific sensors or all known sensors</p>
-  <p>When you click that you only want to read the data from specific sensors you can check all devices you want to let through. For everything else no msg.payload will be sent.</p>
-  <p>For example flows and further instructions visit: <a href="https://github.com/node-enocean/node-red-contrib-enocean">our Github Repo</a>
-</script>
-
-<style>
-  #node-input-status-target-container {
-    position: relative;
-  }
-
-  #node-input-status-target-container li {
-    padding: 2px 5px;
-    background: none;
-    font-size: 0.8em;
-    margin: 0;
-    white-space: nowrap;
-  }
-
-  #node-input-status-target-container li label {
-    margin-bottom: 0;
-    width: 100%;
-  }
-
-  #node-input-status-target-container li label input {
-    vertical-align: top;
-    width: 15px;
-    margin-right: 10px;
-  }
-
-  #node-input-status-target-container li:hover,
-  #node-input-status-target-container li:hover .node-input-target-node-sublabel {
-    background: #f0f0f0;
-  }
-
-  .node-input-target-node-sublabel {
-    position: absolute;
-    right: 0px;
-    padding-right: 10px;
-    padding-left: 10px;
-    font-size: 0.8em;
-    background: #fbfbfb;
-  }
-</style>
-
 
 <script type="text/javascript">
-  // var knownSensors = require('/knownSensors.json');
-  RED.nodes.registerType('enocean-listener', {
-    category: 'input',
-    color: "rgb(171, 209, 46)",
+  RED.nodes.registerType('googlehome-notify', {
+    category: 'output',
+    color: '#fff',
     defaults: {
-      serialport: {
+      server: {
         value: "",
-        type: "enocean-config-node"
+        type: "googlehome-config-node"
       },
       name: {
         value: ""
-      },
-      knownsensor: {
-        value: false
-      },
-      devicefilter: {
-        value: "None"
-      },
-      devices: {
-        value: null
-      },
-      knownsensorarray: {
-        value: null
       }
     },
     inputs: 1,
-    outputs: 1,
-    icon: "dolphin.png",
-    align: "left",
+    outputs: 0,
     label: function () {
-      return this.name || "Enocean Listener";
-    },
-    oneditprepare: function () {
-
-      var nodeList = $("#node-input-status-target-container");
-      var node = this;
-
-      $.getJSON('/knownsensors', function (data) {
-        node.knownSensors = data;
-      });
-
-      function createNodeList() {
-        node.devices = node.devices || [];
-
-
-        if (node.serialport === undefined || node.serialport === '')
-          return;
-
-        var allChecked = true;
-        $.each(node.knownSensors, function (i, item) {
-
-          var isChecked = node.devices.indexOf(item.id) !== -1;
-          allChecked = allChecked && isChecked;
-          var container = $('<li/>', {
-            class: "node-input-target-node"
-          });
-          var row = $('<label/>', {
-            for: "node-input-target-node-" + item.id
-          }).appendTo(container);
-          $('<input>', {
-              type: "checkbox",
-              class: "node-input-target-node-checkbox",
-              id: "node-input-target-node-" + item.id
-            })
-            .data('node-id', item.id)
-            .prop('checked', isChecked)
-            .appendTo(row);
-          container.on('mouseover', function (e) {
-            item.highlighted = true;
-            item.dirty = true;
-            RED.view.redraw();
-          });
-          container.on('mouseout', function (e) {
-            item.highlighted = false;
-            item.dirty = true;
-            RED.view.redraw();
-          });
-          var labelSpan = $('<span>');
-          var label;
-          var sublabel;
-
-          label = item.title;
-          sublabel = item.id;
-          $('<span>', {
-            class: "node-input-target-node-label",
-            style: "white-space:nowrap"
-          }).text(label).appendTo(row);
-          $('<span>', {
-            class: "node-input-target-node-sublabel"
-          }).text(sublabel).appendTo(row);
-          container.appendTo(nodeList);
-        });
-        $(".node-input-target-node-checkbox").change(function () {
-          if (!this.checked) {
-            $("#node-input-target-node-checkbox-all").prop('checked', false);
-          }
-        });
-        $("#node-input-target-node-checkbox-all").prop('checked', allChecked);
-        sortNodeList('label');
-
-      }
-
-
-      function sortNodeList(sortOn) {
-        var currentSort = nodeList.data('currentSort');
-        var currentSortOrder = nodeList.data('currentSortOrder');
-        if (!currentSort) {
-          currentSort = sortOn;
-          currentSortOrder = 'a';
-        } else {
-          if (currentSort === sortOn) {
-            currentSortOrder = (currentSortOrder === 'a' ? 'd' : 'a');
-          } else {
-            currentSortOrder = 'a';
-          }
-          currentSort = sortOn;
-        }
-        nodeList.data('currentSort', currentSort);
-        nodeList.data('currentSortOrder', currentSortOrder);
-        $("#node-input-status-target-container-div .fa").hide();
-        $(".node-input-status-sort-" + currentSort + "-" + currentSortOrder).show();
-        var items = nodeList.find("li").get();
-        items.sort(function (a, b) {
-          var labelA = $(a).find(".node-input-target-node-" + currentSort).text().toLowerCase();
-          var labelB = $(b).find(".node-input-target-node-" + currentSort).text().toLowerCase();
-          if (labelA < labelB) {
-            return currentSortOrder === 'a' ? -1 : 1;
-          }
-          if (labelA > labelB) {
-            return currentSortOrder === 'a' ? 1 : -1;
-          }
-          return 0;
-        });
-        $.each(items, function (i, li) {
-          nodeList.append(li);
-        });
-      }
-
-      $("#node-input-target-sort-label").click(function (e) {
-        e.preventDefault();
-        sortNodeList('label');
-      });
-      $("#node-input-target-sort-type").click(function (e) {
-        e.preventDefault();
-        sortNodeList('sublabel')
-      });
-      $("#node-input-target-node-checkbox-all").change(function () {
-        $(".node-input-target-node-checkbox").prop('checked', this.checked);
-      })
-      $("#node-input-devicefilter").change(function (e) {
-        var option = $(this).children("option:selected").val();
-        console.log(option);
-        if (option === "target") {
-          createNodeList();
-          $(".node-input-target-row").show();
-        } else {
-          $("#node-input-status-target-container").empty();
-          $(".node-input-target-row").hide();
-        }
-      });
-
-      $("#node-input-knownsensor").change(function (e) {
-        if (this.checked) {
-          $("#node-input-devicefilter-row").show();
-          // $(".node-input-target-row").show();
-          // $("#node-input-devicefilter").val("none");
-        } else {
-          $("#node-input-status-target-container").empty();
-          $("#node-input-devicefilter-row").hide();
-          $(".node-input-target-row").hide();
-        }
-      });
-
-      if (this.devices !== null) {
-        $("#node-input-devicefilter").val("target");
-      } else {
-        $("#node-input-devicefilter").val("none");
-      }
-
-      function dialogResize() {
-        var rows = $("#dialog-form>div:not(.node-input-target-row)");
-        var height = $("#dialog-form").height();
-        for (var i = 0; i < rows.size(); i++) {
-          height -= $(rows[i]).outerHeight(true);
-        }
-        var editorRow = $("#dialog-form>div.node-input-target-row");
-        height -= (parseInt(editorRow.css("marginTop")) + parseInt(editorRow.css("marginBottom")));
-        $("#node-input-status-target-container-div").css("height", height + "px");
-      };
-      $("#dialog").on("dialogresize", dialogResize);
-      $("#dialog").one("dialogopen", function (ev) {
-        var size = $("#dialog").dialog('option', 'sizeCache-status');
-        if (size) {
-          $("#dialog").dialog('option', 'width', size.width);
-          $("#dialog").dialog('option', 'height', size.height);
-          dialogResize();
-        }
-      });
-      $("#dialog").one("dialogclose", function (ev, ui) {
-        $("#dialog").off("dialogresize", dialogResize);
-      });
-    },
-    oneditsave: function () {
-      var node = this;
-      var selected = $("#node-input-devicefilter").children("option:selected").val();
-
-      if (selected === 'none') {
-        node.devices = null;
-      } else {
-
-        node.devices = [];
-        $(".node-input-target-node-checkbox").each(function (n) {
-          if ($(this).prop("checked")) {
-
-            node.devices.push($(this).data('node-id'));
-          }
-        });
-      }
+      return this.name || "Google Home Notify";
     }
   });
 </script>

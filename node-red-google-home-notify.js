@@ -8,33 +8,38 @@ module.exports = function (RED) {
     this.ipaddress = n.ipaddress;
     this.language = n.language;
 
+    //Prepare language Select Box
+    var obj = require('./languages');
+    //map to Array:
+    var languages = [];
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            languages.push({
+              key: key,
+              value: obj[key]
+            });
+        }
+    };
+
+    RED.httpAdmin.get('/languages', function(req, res) {
+      res.json(languages || []);
+    });
+
     this.googlehomenotifier = {};
 
     this.googlehomenotifier = require('google-home-notify')(
-      ipadress, language, 1);
+      this.ipaddress, this.language, 1);
 
     var node = this;
+
   };
 
   RED.nodes.registerType("googlehome-config-node", GoogleHomeConfig);
 
   function GoogleHomeNotifier(n) {
     RED.nodes.createNode(this, n);
-    var jsonObject = require(__dirname + "/knownSensors.json");
-    //map to Array:
-    var knownsensorarray = Object.keys(jsonObject).map(function (key) {
-      return jsonObject[key];
-    });
 
-    RED.httpAdmin.get('/knownsensors', function (req, res) {
-      res.json(knownsensorarray || []);
-    });
-
-    this.knownsensor = n.knownsensor;
-    this.devicefilter = n.devicefilter;
-    this.devices = n.devices;
-
-    var config = RED.nodes.getNode(n.ipaddress);
+    var config = RED.nodes.getNode(n.server);
 
     var node = this;
 
@@ -44,21 +49,14 @@ module.exports = function (RED) {
       node.status({
         fill: 'green',
         shape: "ring",
-        text: "Text sent"
+        text: "Text sent to Google Device"
       });
     });
 
-    config.enocean.setMaxListeners(Infinity);
-
-
-    node.status({
-      fill: 'yellow',
-      shape: "ring",
-      text: "Connecting..."
-    });
+    config.googlehomenotifier.setMaxListeners(Infinity);
 
   };
 
-  RED.nodes.registerType("enocean-listener", EnOceanListener);
+  RED.nodes.registerType("googlehome-notify", GoogleHomeNotifier);
 
 };
