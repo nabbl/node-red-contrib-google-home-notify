@@ -7,7 +7,7 @@
         required: true
       },
       language: {
-        value: ""
+        value: "en"
       }
     },
     label: function () {
@@ -17,18 +17,17 @@
       var node = this;
       var options = $("#node-input-language");
 
+      //Calling the API built by NodeJS code
       $.getJSON('/languages', function (languages) {
         $.each(languages, function (l, language) {
           options.append($("<option />").val(language.key).text(language.value));
           options.val(node.language);
         });
       });
-
     },
     oneditsave: function () {
       var node = this;
       node.language = $("#node-input-language").val();
-      
     }
   });
 </script>
@@ -41,7 +40,7 @@
   <div class="form-row">
     <label for="node-input-language"><i class="fa fa-filter"></i>  Language</label>
     <select id="node-input-language">
-          <option value=""> Default</option>
+          <option value="en"> English</option>
       </select>
   </div>
   <!-- <div class="form-row">

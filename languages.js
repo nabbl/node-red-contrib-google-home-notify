@@ -7,7 +7,6 @@
  */
 
 module.exports = {
-  'auto': 'Automatic',
   'af': 'Afrikaans',
   'sq': 'Albanian',
   'am': 'Amharic',
