@@ -21,40 +21,51 @@ module.exports = function (RED) {
         }
     };
 
+    //Build an API for config node HTML to use
     RED.httpAdmin.get('/languages', function(req, res) {
       res.json(languages || []);
     });
 
-    this.googlehomenotifier = {};
-
-    this.googlehomenotifier = require('google-home-notify')(
-      this.ipaddress, this.language, 1);
-
-    var node = this;
-
+    //Known issue: when 'language' is Default/Auto, this will fail & return undefined
+    this.googlehomenotifier = require('google-home-notify')(this.ipaddress, this.language, 1);
   };
 
   RED.nodes.registerType("googlehome-config-node", GoogleHomeConfig);
 
+  //--------------------------------------------------------
+
   function GoogleHomeNotifier(n) {
     RED.nodes.createNode(this, n);
-
-    var config = RED.nodes.getNode(n.server);
-
     var node = this;
 
+    //Validate config node
+    var config = RED.nodes.getNode(n.server);
+    if (config === null || config === undefined) {
+      node.status({fill:"red", shape:"ring", text:"please create & select a config node"});
+      return;
+    }
+
+    //On Input
     node.on('input', function (msg) {
+      //Validate config node
+      if (config === null || config === undefined) {
+        node.status({fill:"red", shape:"ring", text:"please create & select a config node"});
+        return;
+      }
+
       // we can trigger a learning function
       config.googlehomenotifier.notify(msg.payload);
-      node.status({
-        fill: 'green',
-        shape: "ring",
-        text: "Text sent to Google Device"
-      });
+      node.status({fill:"green", shape:"dot", text:"text sent to Google device"});
     });
 
-    config.googlehomenotifier.setMaxListeners(Infinity);
+    //Workaround for a known issue
+    if (config.googlehomenotifier === null || config.googlehomenotifier === undefined) {
+      node.status({fill:"red", shape:"ring", text:"please select a non-Default language"});
+      return;
+    }
 
+    node.status({fill:"blue", shape:"dot", text:"ready"});
+    config.googlehomenotifier.setMaxListeners(Infinity);
   };
 
   RED.nodes.registerType("googlehome-notify", GoogleHomeNotifier);
