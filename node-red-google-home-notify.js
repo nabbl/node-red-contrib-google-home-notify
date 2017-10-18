@@ -28,7 +28,37 @@ module.exports = function (RED) {
 
     //Known issue: when 'language' is Default/Auto, this will fail & return undefined
     this.googlehomenotifier = require('google-home-notify')(this.ipaddress, this.language, 1);
+
+    //Build another API to auto detect IP Addresses
+    discoverIpAddresses('googlecast', function(ipaddresses) {
+      RED.httpAdmin.get('/ipaddresses', function(req, res) {
+        res.json(ipaddresses);
+      });
+    });
   };
+
+  function discoverIpAddresses(serviceType, discoveryCallback)
+  {
+    var ipaddresses = [];
+    var bonjour = require('bonjour')();
+    var browser = bonjour.find({type: serviceType}, function(service) {
+      service.addresses.forEach(function(element) {
+        if (element.split(".").length == 4) {
+          var label = "" + service.txt.md + " (" + element + ")";
+          ipaddresses.push({
+            label:label,
+            value:element
+          });
+        }
+      });
+
+      //Add a bit of delay for all services to be discovered
+      if (discoveryCallback) 
+        setTimeout(function(){ 
+          discoveryCallback(ipaddresses);
+        }, 2000);
+    });
+  }
 
   RED.nodes.registerType("googlehome-config-node", GoogleHomeConfig);
 

@@ -24,6 +24,32 @@
           options.val(node.language);
         });
       });
+
+      try {
+        $("#node-config-input-ipaddress").autocomplete( "destroy" );
+      } catch(err) { }
+      $("#node-config-lookup-ipaddress").click(function() {
+          $("#node-config-lookup-ipaddress-icon").removeClass('fa-search');
+          $("#node-config-lookup-ipaddress-icon").addClass('spinner');
+          $("#node-config-lookup-ipaddress").addClass('disabled');
+          $.getJSON('ipaddresses',function(data) {
+              $("#node-config-lookup-ipaddress-icon").addClass('fa-search');
+              $("#node-config-lookup-ipaddress-icon").removeClass('spinner');
+              $("#node-config-lookup-ipaddress").removeClass('disabled');
+              var ipaddresses = [];
+              $.each(data, function(i, ip){
+                  ipaddresses.push(ip);
+              });
+              $("#node-config-input-ipaddress").autocomplete({
+                  source:ipaddresses,
+                  minLength:0,
+                  close: function( event, ui ) {
+                      $("#node-config-input-ipaddress").autocomplete( "destroy" );
+                  }
+              }).autocomplete("search","");
+          });
+      });
+
     },
     oneditsave: function () {
       var node = this;
@@ -35,11 +61,12 @@
 <script type="text/x-red" data-template-name="googlehome-config-node">
   <div class="form-row">
     <label for="node-config-input-ipaddress"><i class="icon-bookmark"></i> IP Adress</label>
-    <input type="text" id="node-config-input-ipaddress">
+    <input type="text" id="node-config-input-ipaddress" style="width:60%;" placeholder="192.168.xxx.xxx"/>
+    <a id="node-config-lookup-ipaddress" class="btn"><i id="node-config-lookup-ipaddress-icon" class="fa fa-search"></i></a>
   </div>
   <div class="form-row">
-    <label for="node-input-language"><i class="fa fa-filter"></i>  Language</label>
-    <select id="node-input-language">
+    <label for="node-input-language"><i class="fa fa-globe"></i>  Language</label>
+    <select id="node-input-language" style="width:60%;">
           <option value="en"> English</option>
       </select>
   </div>
