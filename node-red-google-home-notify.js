@@ -13,16 +13,16 @@ module.exports = function (RED) {
     //map to Array:
     var languages = [];
     for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            languages.push({
-              key: key,
-              value: obj[key]
-            });
-        }
+      if (obj.hasOwnProperty(key)) {
+        languages.push({
+          key: key,
+          value: obj[key]
+        });
+      }
     };
 
     //Build an API for config node HTML to use
-    RED.httpAdmin.get('/languages', function(req, res) {
+    RED.httpAdmin.get('/languages', function (req, res) {
       res.json(languages || []);
     });
 
@@ -30,31 +30,32 @@ module.exports = function (RED) {
     this.googlehomenotifier = require('google-home-notify')(this.ipaddress, this.language, 1);
 
     //Build another API to auto detect IP Addresses
-    discoverIpAddresses('googlecast', function(ipaddresses) {
-      RED.httpAdmin.get('/ipaddresses', function(req, res) {
+    discoverIpAddresses('googlecast', function (ipaddresses) {
+      RED.httpAdmin.get('/ipaddresses', function (req, res) {
         res.json(ipaddresses);
       });
     });
   };
 
-  function discoverIpAddresses(serviceType, discoveryCallback)
-  {
+  function discoverIpAddresses(serviceType, discoveryCallback) {
     var ipaddresses = [];
     var bonjour = require('bonjour')();
-    var browser = bonjour.find({type: serviceType}, function(service) {
-      service.addresses.forEach(function(element) {
+    var browser = bonjour.find({
+      type: serviceType
+    }, function (service) {
+      service.addresses.forEach(function (element) {
         if (element.split(".").length == 4) {
           var label = "" + service.txt.md + " (" + element + ")";
           ipaddresses.push({
-            label:label,
-            value:element
+            label: label,
+            value: element
           });
         }
       });
 
       //Add a bit of delay for all services to be discovered
-      if (discoveryCallback) 
-        setTimeout(function(){ 
+      if (discoveryCallback)
+        setTimeout(function () {
           discoveryCallback(ipaddresses);
         }, 2000);
     });
@@ -71,7 +72,11 @@ module.exports = function (RED) {
     //Validate config node
     var config = RED.nodes.getNode(n.server);
     if (config === null || config === undefined) {
-      node.status({fill:"red", shape:"ring", text:"please create & select a config node"});
+      node.status({
+        fill: "red",
+        shape: "ring",
+        text: "please create & select a config node"
+      });
       return;
     }
 
@@ -79,22 +84,46 @@ module.exports = function (RED) {
     node.on('input', function (msg) {
       //Validate config node
       if (config === null || config === undefined) {
-        node.status({fill:"red", shape:"ring", text:"please create & select a config node"});
+        node.status({
+          fill: "red",
+          shape: "ring",
+          text: "please create & select a config node"
+        });
         return;
       }
 
-      // we can trigger a learning function
-      config.googlehomenotifier.notify(msg.payload);
-      node.status({fill:"green", shape:"dot", text:"text sent to Google device"});
+      config.googlehomenotifier.notify(msg.payload, function (result) {
+          node.status({
+            fill: "green",
+            shape: "ring",
+            text: "Successfully sent voice command"
+          });
+      });
+    });
+
+    config.googlehomenotifier.on('error', function (error) {
+      node.status({
+        fill: "red",
+        shape: "ring",
+        text: error.message
+      });
     });
 
     //Workaround for a known issue
     if (config.googlehomenotifier === null || config.googlehomenotifier === undefined) {
-      node.status({fill:"red", shape:"ring", text:"please select a non-Default language"});
+      node.status({
+        fill: "red",
+        shape: "ring",
+        text: "please select a non-Default language"
+      });
       return;
     }
 
-    node.status({fill:"blue", shape:"dot", text:"ready"});
+    node.status({
+      fill: "blue",
+      shape: "dot",
+      text: "ready"
+    });
     config.googlehomenotifier.setMaxListeners(Infinity);
   };
 
