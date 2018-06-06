@@ -92,6 +92,20 @@ module.exports = function (RED) {
         return;
       }
 
+      //play music if it is a mp3 url
+      var expression = /^https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{2,256}\/([-a-zA-Z0-9@:%_\+.~#?&//=]*).mp3$/;
+      var regex = new RegExp(expression);
+      if(msg.payload.toLowerCase().match(regex)){
+        config.googlehomenotifier.play(msg.payload, function (result) {
+          node.status({
+            fill: "green",
+            shape: "ring",
+            text: "Successfully played mp3"
+          });
+        });
+        return;
+      }
+
       config.googlehomenotifier.notify(msg.payload, function (result) {
           node.status({
             fill: "green",
