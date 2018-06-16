@@ -6,12 +6,15 @@
         value: "",
         required: true
       },
+      name: {
+        value: "",
+      },
       language: {
         value: "en"
       }
     },
     label: function () {
-      return this.ipaddress;
+      return this.ipaddress || this.name;
     },
     oneditprepare: function () {
       var node = this;
@@ -106,7 +109,7 @@
     inputs: 1,
     outputs: 0,
     label: function () {
-      return this.name || "Google Home Notify";
+      return this.configname || this.name || "Google Home Notify";
     }
   });
 </script>

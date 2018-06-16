@@ -71,6 +71,7 @@ module.exports = function (RED) {
 
     //Validate config node
     var config = RED.nodes.getNode(n.server);
+    this.configname = config.name;
     if (config === null || config === undefined) {
       node.status({
         fill: "red",
