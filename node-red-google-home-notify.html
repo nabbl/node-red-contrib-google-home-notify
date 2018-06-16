@@ -7,14 +7,14 @@
         required: true
       },
       name: {
-        value: "",
+        value: ""
       },
       language: {
         value: "en"
       }
     },
     label: function () {
-      return this.ipaddress || this.name;
+      return this.name || this.ipaddress;
     },
     oneditprepare: function () {
       var node = this;
