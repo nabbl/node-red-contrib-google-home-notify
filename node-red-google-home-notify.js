@@ -7,6 +7,7 @@ module.exports = function (RED) {
 
     this.ipaddress = n.ipaddress;
     this.language = n.language;
+    this.name = n.name;
 
     //Prepare language Select Box
     var obj = require('./languages');
@@ -71,6 +72,7 @@ module.exports = function (RED) {
 
     //Validate config node
     var config = RED.nodes.getNode(n.server);
+    this.configname = config.name;
     if (config === null || config === undefined) {
       node.status({
         fill: "red",
