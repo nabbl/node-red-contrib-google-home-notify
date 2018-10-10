@@ -6,12 +6,15 @@
         value: "",
         required: true
       },
+      name: {
+        value: ""
+      },
       language: {
         value: "en"
       }
     },
     label: function () {
-      return this.ipaddress;
+      return this.name || this.ipaddress;
     },
     oneditprepare: function () {
       var node = this;
@@ -65,6 +68,10 @@
     <a id="node-config-lookup-ipaddress" class="btn"><i id="node-config-lookup-ipaddress-icon" class="fa fa-search"></i></a>
   </div>
   <div class="form-row">
+    <label for="node-config-input-name"><i class="icon-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" style="width:60%;" placeholder="Google Home Mini"/>
+  </div>
+  <div class="form-row">
     <label for="node-input-language"><i class="fa fa-globe"></i>  Language</label>
     <select id="node-input-language" style="width:60%;">
           <option value="en"> English</option>
@@ -106,7 +113,7 @@
     inputs: 1,
     outputs: 0,
     label: function () {
-      return this.name || "Google Home Notify";
+      return this.configname || this.name || "Google Home Notify";
     }
   });
 </script>

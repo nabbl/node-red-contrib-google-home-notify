@@ -10,7 +10,15 @@ Great for telling us about finished Home Automation tasks.
 
 ## How it works:
 
+### Text Notification
+
 Hook up an Inject-Node to the Input channel and send a simple text phrase. This node will send the text to the google translation API which returns an MP3 file which then gets casted to your chosen Google device.
+
+### Play MP3
+
+If the input text is an mp3 url start with **http** and end up with **.mp3**, Google device can directly play it. You can host some mp3 files on your own server. For example.
+
+> http://yourhost/xyz.mp3
 
 ## To install: 
 

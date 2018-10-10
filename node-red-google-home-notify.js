@@ -7,6 +7,7 @@ module.exports = function (RED) {
 
     this.ipaddress = n.ipaddress;
     this.language = n.language;
+    this.name = n.name;
 
     //Prepare language Select Box
     var obj = require('./languages');
@@ -71,6 +72,7 @@ module.exports = function (RED) {
 
     //Validate config node
     var config = RED.nodes.getNode(n.server);
+    this.configname = config.name;
     if (config === null || config === undefined) {
       node.status({
         fill: "red",
@@ -88,6 +90,20 @@ module.exports = function (RED) {
           fill: "red",
           shape: "ring",
           text: "please create & select a config node"
+        });
+        return;
+      }
+
+      //play music if it is a mp3 url
+      var expression = /^https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{2,256}\/([-a-zA-Z0-9@:%_\+.~#?&//=]*).mp3$/;
+      var regex = new RegExp(expression);
+      if(msg.payload.toLowerCase().match(regex)){
+        config.googlehomenotifier.play(msg.payload, function (result) {
+          node.status({
+            fill: "green",
+            shape: "ring",
+            text: "Successfully played mp3"
+          });
         });
         return;
       }
