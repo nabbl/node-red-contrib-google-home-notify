@@ -1,3 +1,11 @@
+# This project is no longer maintained!
+
+Please refer to this library to cast to your google homes instead:
+
+https://flows.nodered.org/node/node-red-contrib-cast
+
+
+
 # node-red-contrib-google-home-notify
 
 These nodes are based on a fork of the google-home-notifier-library:
