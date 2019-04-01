@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "bonjour": "^3.5.0",
-    "google-home-notify": "^0.0.3"
+    "google-home-notify": "^0.0.4"
   },
   "repository": {
     "type": "git",
